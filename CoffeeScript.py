@@ -61,7 +61,7 @@ def _run(cmd, args=[], source="", cwd=None, env=None):
         return {"okay": okay, "out": stat[0].decode(locale.getdefaultlocale()[1]), "err": stat[1].decode(locale.getdefaultlocale()[1])}
     else:
         if env is None:
-            env = {"PATH": settings_get('binDir', '/usr/local/bin')}
+            env = {"PATH": os.environ["PATH"]}
 
         # adding custom PATHs from settings
         customEnv = settings_get('envPATH', "")
@@ -183,7 +183,13 @@ class CompileCommand(TextCommand):
             cwd = source_dir
         else:
             cwd = None
-        result = run("coffee", args=args, cwd=cwd)
+
+        coffeeBin = os.path.normcase(os.path.join(source_dir, 'node_modules', '.bin', 'coffee'))
+        if os.path.isfile(coffeeBin):
+            print("Using local `coffee` to compile:", coffeeBin)
+            result = run(coffeeBin, args=args, cwd=cwd)
+        else:
+            result = run('coffee', args=args, cwd=cwd)
 
         if result['okay'] is True:
             status = 'Compilation Succeeded'
